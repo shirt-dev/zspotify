@@ -83,8 +83,9 @@ def download_from_urls(urls: list[str]) -> bool:
             playlist_songs = get_playlist_songs(playlist_id)
             name, _ = get_playlist_info(playlist_id)
             enum = 1
+            char_num = len(str(len(playlist_songs)))
             for song in playlist_songs:
-                download_track('playlist', song[TRACK][ID], extra_keys={'playlist': name, 'playlist_num': str(enum).zfill(3)})
+                download_track('playlist', song[TRACK][ID], extra_keys={'playlist': name, 'playlist_num': str(enum).zfill(char_num)})
                 enum += 1
         elif episode_id is not None:
             download = True
