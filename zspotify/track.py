@@ -126,6 +126,7 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
 
     except Exception as e:
         Printer.print(PrintChannel.ERRORS, '###   SKIPPING SONG - FAILED TO QUERY METADATA   ###')
+        Printer.print(PrintChannel.ERRORS, 'Track_ID: ' + str(track_id) + "\n")
         Printer.print(PrintChannel.ERRORS, str(e) + "\n")
         Printer.print(PrintChannel.ERRORS, "".join(traceback.TracebackException.from_exception(e).format()) + "\n")
     else:
@@ -191,6 +192,7 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
                         time.sleep(ZSpotify.CONFIG.get_anti_ban_wait_time())
         except Exception as e:
             Printer.print(PrintChannel.ERRORS, '###   SKIPPING: ' + song_name + ' (GENERAL DOWNLOAD ERROR)   ###')
+            Printer.print(PrintChannel.ERRORS, 'Track_ID: ' + str(track_id) + "\n")
             Printer.print(PrintChannel.ERRORS, str(e) + "\n")
             Printer.print(PrintChannel.ERRORS, "".join(traceback.TracebackException.from_exception(e).format()) + "\n")
             if os.path.exists(filename_temp):
