@@ -70,7 +70,7 @@ def download_episode(episode_id) -> None:
     extra_paths = podcast_name + '/'
 
     if podcast_name is None:
-        Printer.print(PrintChannel.ERRORS, '###   SKIPPING: (EPISODE NOT FOUND)   ###')
+        Printer.print(PrintChannel.SKIPS, '###   SKIPPING: (EPISODE NOT FOUND)   ###')
     else:
         filename = podcast_name + ' - ' + episode_name
 
