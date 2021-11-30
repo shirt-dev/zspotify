@@ -44,27 +44,20 @@ def get_song_info(song_id) -> Tuple[List[str], List[str], str, str, Any, Any, An
     try:
         artists = []
         genres = []
-        genreRetrieved = False
         for data in info[TRACKS][0][ARTISTS]:
             artists.append(data[NAME])
-            try:
-                if not genreRetrieved:
-                    # query artist genres via href, which will be the api url
-                    (raw, artistInfo) = ZSpotify.invoke_url(f'{data["href"]}')
-                    if ZSpotify.CONFIG.get_allGenres() and len(artistInfo[GENRES]) > 0:
-                        genreRetrieved = False
-                        for genre in artistInfo[GENRES]:
-                            genres.append(genre)
-                    elif len(artistInfo[GENRES]) > 0:
-                        genres.append(artistInfo[GENRES][0])
-                        genreRetrieved = True
-                    else:
-                        genres.append('')
-                        genreRetrieved = True
-            except Exception as genreError:
-                if len(genres) == 0:
-                    genres.append('')
-                    
+            # query artist genres via href, which will be the api url
+            (raw, artistInfo) = ZSpotify.invoke_url(f'{data["href"]}')
+            if ZSpotify.CONFIG.get_allGenres() and len(artistInfo[GENRES]) > 0:
+                for genre in artistInfo[GENRES]:
+                    genres.append(genre)
+            elif len(artistInfo[GENRES]) > 0:
+                genres.append(artistInfo[GENRES][0])
+         
+        if len(genres) == 0:
+            Printer.print(PrintChannel.SKIPS, "No Genre found.")
+            genres.append('')   
+                
         album_name = info[TRACKS][0][ALBUM][NAME]
         name = info[TRACKS][0][NAME]
         image_url = info[TRACKS][0][ALBUM][IMAGES][0][URL]
