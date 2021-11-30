@@ -102,7 +102,10 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
 
         (artists, genres, album_name, name, image_url, release_year, disc_number,
          track_number, scraped_song_id, is_playable, duration_ms) = get_song_info(track_id)
-
+        
+        prepareDownloadLoader = Loader("Preparing download...");
+        prepareDownloadLoader.start()
+        
         song_name = fix_filename(artists[0]) + ' - ' + fix_filename(name)
 
         for k in extra_keys:
@@ -149,12 +152,15 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
     else:
         try:
             if not is_playable:
+                prepareDownloadLoader.stop();
                 Printer.print(PrintChannel.SKIPS, '\n###   SKIPPING: ' + song_name + ' (SONG IS UNAVAILABLE)   ###' + "\n")
             else:
                 if check_id and check_name and ZSpotify.CONFIG.get_skip_existing_files():
+                    prepareDownloadLoader.stop();
                     Printer.print(PrintChannel.SKIPS, '\n###   SKIPPING: ' + song_name + ' (SONG ALREADY EXISTS)   ###' + "\n")
 
                 elif check_all_time and ZSpotify.CONFIG.get_skip_previously_downloaded():
+                    prepareDownloadLoader.stop();
                     Printer.print(PrintChannel.SKIPS, '\n###   SKIPPING: ' + song_name + ' (SONG ALREADY DOWNLOADED ONCE)   ###' + "\n")
 
                 else:
@@ -164,6 +170,8 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
                     stream = ZSpotify.get_content_stream(track_id, ZSpotify.DOWNLOAD_QUALITY)
                     create_download_directory(filedir)
                     total_size = stream.input_stream.size
+
+                    prepareDownloadLoader.stop();
 
                     time_start = time.time()
                     downloaded = 0
@@ -214,8 +222,8 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
             Printer.print(PrintChannel.ERRORS, "".join(traceback.TracebackException.from_exception(e).format()) + "\n")
             if os.path.exists(filename_temp):
                 os.remove(filename_temp)
-
-
+                
+    prepareDownloadLoader.stop()
 def convert_audio_format(filename) -> None:
     """ Converts raw audio into playable file """
     temp_filename = f'{os.path.splitext(filename)[0]}.tmp'
