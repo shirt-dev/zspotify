@@ -333,7 +333,7 @@ class Loader:
         for c in cycle(self.steps):
             if self.done:
                 break
-            print(f"\r\t☐ {c} {self.desc} ", flush=True, end="")
+            print(f"\r\t{c} {self.desc} ", flush=True, end="")
             sleep(self.timeout)
 
     def __enter__(self):
