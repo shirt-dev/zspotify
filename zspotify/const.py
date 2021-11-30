@@ -20,6 +20,10 @@ ARTISTS = 'artists'
 
 ALBUMARTIST = 'albumartist'
 
+GENRES = 'genres'
+
+GENRE = 'genre'
+
 ARTWORK = 'artwork'
 
 TRACKS = 'tracks'

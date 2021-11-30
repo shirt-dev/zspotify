@@ -8,7 +8,7 @@ from librespot.audio.decoders import AudioQuality
 from librespot.metadata import TrackId
 from ffmpy import FFmpeg
 
-from const import TRACKS, ALBUM, NAME, ITEMS, DISC_NUMBER, TRACK_NUMBER, IS_PLAYABLE, ARTISTS, IMAGES, URL, \
+from const import TRACKS, ALBUM, GENRES, GENRE, NAME, ITEMS, DISC_NUMBER, TRACK_NUMBER, IS_PLAYABLE, ARTISTS, IMAGES, URL, \
     RELEASE_DATE, ID, TRACKS_URL, SAVED_TRACKS_URL, TRACK_STATS_URL, CODEC_MAP, EXT_MAP, DURATION_MS
 from termoutput import Printer, PrintChannel
 from utils import fix_filename, set_audio_tags, set_music_thumbnail, create_download_directory, \
@@ -33,7 +33,7 @@ def get_saved_tracks() -> list:
     return songs
 
 
-def get_song_info(song_id) -> Tuple[List[str], str, str, Any, Any, Any, Any, Any, Any, int]:
+def get_song_info(song_id) -> Tuple[List[str], List[str], str, str, Any, Any, Any, Any, Any, Any, int]:
     """ Retrieves metadata for downloaded songs """
     (raw, info) = ZSpotify.invoke_url(f'{TRACKS_URL}?ids={song_id}&market=from_token')
 
@@ -42,8 +42,18 @@ def get_song_info(song_id) -> Tuple[List[str], str, str, Any, Any, Any, Any, Any
 
     try:
         artists = []
+        genres = []
         for data in info[TRACKS][0][ARTISTS]:
             artists.append(data[NAME])
+            # query artist genres via href, which will be the api url
+            (raw, artistInfo) = ZSpotify.invoke_url(f'{data["href"]}')
+            if ZSpotify.CONFIG.get_allGenres() and len(artistInfo[GENRES]) > 0:
+                for genre in artistInfo[GENRES]:
+                    genres.append(genre)
+            elif len(artistInfo[GENRES]) > 0:
+                genres.append(artistInfo[GENRES][0])
+            else:
+                genres.append('')
         album_name = info[TRACKS][0][ALBUM][NAME]
         name = info[TRACKS][0][NAME]
         image_url = info[TRACKS][0][ALBUM][IMAGES][0][URL]
@@ -54,7 +64,7 @@ def get_song_info(song_id) -> Tuple[List[str], str, str, Any, Any, Any, Any, Any
         is_playable = info[TRACKS][0][IS_PLAYABLE]
         duration_ms = info[TRACKS][0][DURATION_MS]
 
-        return artists, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable, duration_ms
+        return artists, genres, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable, duration_ms
     except Exception as e:
         raise ValueError(f'Failed to parse TRACKS_URL response: {str(e)}\n{raw}')
 
@@ -82,7 +92,7 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
     try:
         output_template = ZSpotify.CONFIG.get_output(mode)
 
-        (artists, album_name, name, image_url, release_year, disc_number,
+        (artists, genres, album_name, name, image_url, release_year, disc_number,
          track_number, scraped_song_id, is_playable, duration_ms) = get_song_info(track_id)
 
         song_name = fix_filename(artists[0]) + ' - ' + fix_filename(name)
@@ -170,7 +180,7 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
                     time_downloaded = time.time()
 
                     convert_audio_format(filename_temp)
-                    set_audio_tags(filename_temp, artists, name, album_name, release_year, disc_number, track_number)
+                    set_audio_tags(filename_temp, artists, genres, name, album_name, release_year, disc_number, track_number)
                     set_music_thumbnail(filename_temp, image_url)
 
                     if filename_temp != filename:

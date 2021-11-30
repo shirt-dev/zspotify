@@ -10,7 +10,7 @@ from typing import List, Tuple
 import music_tag
 import requests
 
-from const import ARTIST, TRACKTITLE, ALBUM, YEAR, DISCNUMBER, TRACKNUMBER, ARTWORK, \
+from const import ARTIST, GENRE, TRACKTITLE, ALBUM, YEAR, DISCNUMBER, TRACKNUMBER, ARTWORK, \
     WINDOWS_SYSTEM, ALBUMARTIST
 from zspotify import ZSpotify
 
@@ -124,11 +124,12 @@ def clear() -> None:
         os.system('clear')
 
 
-def set_audio_tags(filename, artists, name, album_name, release_year, disc_number, track_number) -> None:
+def set_audio_tags(filename, artists, genres, name, album_name, release_year, disc_number, track_number) -> None:
     """ sets music_tag metadata """
     tags = music_tag.load_file(filename)
     tags[ALBUMARTIST] = artists[0]
     tags[ARTIST] = conv_artist_format(artists)
+    tags[GENRE] = genres[0] if not ZSpotify.CONFIG.get_allGenres() else ZSpotify.CONFIG.get_allGenresDelimiter().join(genres)
     tags[TRACKTITLE] = name
     tags[ALBUM] = album_name
     tags[YEAR] = release_year
