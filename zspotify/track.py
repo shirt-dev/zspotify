@@ -17,6 +17,8 @@ from utils import fix_filename, set_audio_tags, set_music_thumbnail, create_down
 from zspotify import ZSpotify
 import traceback
 
+from utils import Loader
+
 def get_saved_tracks() -> list:
     """ Returns user's saved tracks """
     songs = []
@@ -36,7 +38,8 @@ def get_saved_tracks() -> list:
 
 def get_song_info(song_id) -> Tuple[List[str], List[str], str, str, Any, Any, Any, Any, Any, Any, int]:
     """ Retrieves metadata for downloaded songs """
-    (raw, info) = ZSpotify.invoke_url(f'{TRACKS_URL}?ids={song_id}&market=from_token')
+    with Loader("Fetching track information..."):
+        (raw, info) = ZSpotify.invoke_url(f'{TRACKS_URL}?ids={song_id}&market=from_token')
 
     if not TRACKS in info:
         raise ValueError(f'Invalid response from TRACKS_URL:\n{raw}')
@@ -47,7 +50,8 @@ def get_song_info(song_id) -> Tuple[List[str], List[str], str, str, Any, Any, An
         for data in info[TRACKS][0][ARTISTS]:
             artists.append(data[NAME])
             # query artist genres via href, which will be the api url
-            (raw, artistInfo) = ZSpotify.invoke_url(f'{data["href"]}')
+            with Loader("Fetching artist information..."):            
+                (raw, artistInfo) = ZSpotify.invoke_url(f'{data["href"]}')
             if ZSpotify.CONFIG.get_allGenres() and len(artistInfo[GENRES]) > 0:
                 for genre in artistInfo[GENRES]:
                     genres.append(genre)
@@ -238,6 +242,9 @@ def convert_audio_format(filename) -> None:
         inputs={temp_filename: None},
         outputs={filename: output_params}
     )
-    ff_m.run()
+    
+    with Loader("Converting file..."):
+        ff_m.run()
+        
     if os.path.exists(temp_filename):
         os.remove(temp_filename)
