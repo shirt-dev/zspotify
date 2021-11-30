@@ -6,18 +6,16 @@ It's like youtube-dl, but for Spotify.
 
 (Made by Deathmonger/Footsiefat - @doomslayer117:matrix.org)
 """
-import json
 import os
 import os.path
 from getpass import getpass
-from typing import Any
 
 import requests
 from librespot.audio.decoders import VorbisOnlyAudioQuality
 from librespot.core import Session
 
 from const import TYPE, \
-    PREMIUM, USER_READ_EMAIL, AUTHORIZATION, OFFSET, LIMIT, \
+    PREMIUM, USER_READ_EMAIL, OFFSET, LIMIT, \
     PLAYLIST_READ_PRIVATE, USER_LIBRARY_READ
 from config import Config
 

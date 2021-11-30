@@ -4,7 +4,6 @@ import os
 import platform
 import re
 import subprocess
-import time
 from enum import Enum
 from typing import List, Tuple
 

@@ -1,7 +1,6 @@
 import os
 from typing import Optional, Tuple
 
-from librespot.audio.decoders import VorbisOnlyAudioQuality
 from librespot.metadata import EpisodeId
 
 from const import (ERROR, ID, ITEMS, NAME, SHOW)

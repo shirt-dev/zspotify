@@ -9,7 +9,7 @@ from playlist import get_playlist_songs, get_playlist_info, download_from_user_p
 from podcast import download_episode, get_show_episodes
 from termoutput import Printer, PrintChannel
 from track import download_track, get_saved_tracks
-from utils import fix_filename, splash, split_input, regex_input_for_urls
+from utils import splash, split_input, regex_input_for_urls
 from zspotify import ZSpotify
 
 SEARCH_URL = 'https://api.spotify.com/v1/search'
@@ -256,7 +256,7 @@ def search(search_term):
         print('NO RESULTS FOUND - EXITING...')
     else:
         selection = ''
-        print('\n> SELECT A DOWNLOAD OPTION BY ID')
+        print('> SELECT A DOWNLOAD OPTION BY ID')
         print('> SELECT A RANGE BY ADDING A DASH BETWEEN BOTH ID\'s')
         print('> OR PARTICULAR OPTIONS BY ADDING A COMMA BETWEEN ID\'s\n')
         while len(selection) == 0:
