@@ -19,7 +19,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Footsiefat/zspotify.git",
     author="logykk",
-    author_email="logykk@mail.com",
+    author_email="logyx1@protonmail.com",
     license="GPLv3",
     classifiers=[
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
