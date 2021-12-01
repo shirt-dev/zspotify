@@ -19,7 +19,7 @@ from const import TYPE, \
     PLAYLIST_READ_PRIVATE, USER_LIBRARY_READ
 from config import Config
 
-class ZSpotify:
+class ZSpotify:    
     SESSION: Session = None
     DOWNLOAD_QUALITY = None
     CONFIG: Config = Config()
@@ -82,6 +82,8 @@ class ZSpotify:
 
     @classmethod
     def invoke_url(cls, url, tryCount = 0):
+        # we need to import that here, otherwise we will get circular imports!
+        from termoutput import Printer, PrintChannel                
         headers = cls.get_auth_header()
         response = requests.get(url, headers=headers)
         responseText = response.text
@@ -89,7 +91,7 @@ class ZSpotify:
         
         if 'error' in responseJson and tryCount < 20:
             
-            print(f"Spotify API Error ({responseJson['error']['status']}): {responseJson['error']['message']}")            
+            Printer.Print(PrintChannel.API_ERROR, f"Spotify API Error ({responseJson['error']['status']}): {responseJson['error']['message']}")            
             time.sleep(5)
             return cls.invoke_url(url, tryCount + 1)
                 

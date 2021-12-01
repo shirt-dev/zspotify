@@ -59,7 +59,7 @@ def get_song_info(song_id) -> Tuple[List[str], List[str], str, str, Any, Any, An
                 genres.append(artistInfo[GENRES][0])
          
         if len(genres) == 0:
-            Printer.print(PrintChannel.SKIPS, "No Genre found.")
+            Printer.print(PrintChannel.SKIPS, '###    No Genre found.')
             genres.append('')   
                 
         album_name = info[TRACKS][0][ALBUM][NAME]

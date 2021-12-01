@@ -25,6 +25,7 @@ PRINT_SKIPS = 'PRINT_SKIPS'
 PRINT_DOWNLOAD_PROGRESS = 'PRINT_DOWNLOAD_PROGRESS'
 PRINT_ERRORS = 'PRINT_ERRORS'
 PRINT_DOWNLOADS = 'PRINT_DOWNLOADS'
+PRINT_API_ERRORS = 'PRINT_API_ERRORS'
 TEMP_DOWNLOAD_DIR = 'TEMP_DOWNLOAD_DIR'
 MD_ALLGENRES = 'MD_ALLGENRES'
 MD_GENREDELIMITER = 'MD_GENREDELIMITER'
@@ -51,6 +52,7 @@ CONFIG_VALUES = {
     PRINT_DOWNLOAD_PROGRESS:    { 'default': 'True',                  'type': bool, 'arg': '--print-download-progress'    },
     PRINT_ERRORS:               { 'default': 'True',                  'type': bool, 'arg': '--print-errors'               },
     PRINT_DOWNLOADS:            { 'default': 'False',                 'type': bool, 'arg': '--print-downloads'            },
+    PRINT_API_ERRORS:           { 'default': 'False',                 'type': bool, 'arg': '--print-api-errors'            },
     MD_ALLGENRES:               { 'default': 'False',                 'type': bool, 'arg': '--md-allgenres'               },
     MD_GENREDELIMITER:          { 'default': ';',                     'type': str,  'arg': '--md-genredelimiter'          },
     TEMP_DOWNLOAD_DIR:          { 'default': '',                      'type': str,  'arg': '--temp-download-dir'          }
