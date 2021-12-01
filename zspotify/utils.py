@@ -300,7 +300,7 @@ class Loader:
         # do something
         pass          
     """
-    def __init__(self, desc="Loading...", end='', timeout=0.3, mode='std2'):
+    def __init__(self, desc="Loading...", end='', timeout=0.1, mode='std1'):
         """
         A loader-like context manager
 
