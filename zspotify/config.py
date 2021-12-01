@@ -1,8 +1,6 @@
 import json
 import os
-import sys
 from typing import Any
-from enum import Enum
 
 CONFIG_FILE_PATH = '../zs_config.json'
 
@@ -27,6 +25,7 @@ PRINT_SKIPS = 'PRINT_SKIPS'
 PRINT_DOWNLOAD_PROGRESS = 'PRINT_DOWNLOAD_PROGRESS'
 PRINT_ERRORS = 'PRINT_ERRORS'
 PRINT_DOWNLOADS = 'PRINT_DOWNLOADS'
+TEMP_DOWNLOAD_DIR = 'TEMP_DOWNLOAD_DIR'
 
 CONFIG_VALUES = {
     ROOT_PATH:                  { 'default': '../ZSpotify Music/',    'type': str,  'arg': '--root-path'                  },
@@ -50,6 +49,7 @@ CONFIG_VALUES = {
     PRINT_DOWNLOAD_PROGRESS:    { 'default': 'True',                  'type': bool, 'arg': '--print-download-progress'    },
     PRINT_ERRORS:               { 'default': 'True',                  'type': bool, 'arg': '--print-errors'               },
     PRINT_DOWNLOADS:            { 'default': 'False',                 'type': bool, 'arg': '--print-downloads'            },
+    TEMP_DOWNLOAD_DIR:          { 'default': '',                      'type': str,  'arg': '--temp-download-dir'          },
 }
 
 OUTPUT_DEFAULT_PLAYLIST = '{playlist}/{artist} - {song_name}.{ext}'
@@ -129,11 +129,11 @@ class Config:
 
     @classmethod
     def get_root_path(cls) -> str:
-        return cls.get(ROOT_PATH)
+        return os.path.join(os.path.dirname(__file__), cls.get(ROOT_PATH))
 
     @classmethod
     def get_root_podcast_path(cls) -> str:
-        return cls.get(ROOT_PODCAST_PATH)
+        return os.path.join(os.path.dirname(__file__), cls.get(ROOT_PODCAST_PATH))
 
     @classmethod
     def get_skip_existing_files(cls) -> bool:
@@ -181,11 +181,17 @@ class Config:
 
     @classmethod
     def get_song_archive(cls) -> str:
-        return cls.get(SONG_ARCHIVE)
+        return os.path.join(cls.get_root_path(), cls.get(SONG_ARCHIVE))
 
     @classmethod
     def get_credentials_location(cls) -> str:
-        return cls.get(CREDENTIALS_LOCATION)
+        return os.path.join(os.getcwd(), cls.get(CREDENTIALS_LOCATION))
+
+    @classmethod
+    def get_temp_download_dir(cls) -> str:
+        if cls.get(TEMP_DOWNLOAD_DIR) == '':
+            return ''
+        return os.path.join(cls.get_root_path(), cls.get(TEMP_DOWNLOAD_DIR))
 
     @classmethod
     def get_output(cls, mode: str) -> str:

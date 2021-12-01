@@ -1,7 +1,7 @@
 from const import ITEMS, ID, TRACK, NAME
 from termoutput import Printer
 from track import download_track
-from utils import fix_filename, split_input
+from utils import split_input
 from zspotify import ZSpotify
 
 MY_PLAYLISTS_URL = 'https://api.spotify.com/v1/me/playlists'
@@ -42,7 +42,7 @@ def get_playlist_songs(playlist_id):
 
 def get_playlist_info(playlist_id):
     """ Returns information scraped from playlist """
-    resp = ZSpotify.invoke_url(f'{PLAYLISTS_URL}/{playlist_id}?fields=name,owner(display_name)&market=from_token')
+    (raw, resp) = ZSpotify.invoke_url(f'{PLAYLISTS_URL}/{playlist_id}?fields=name,owner(display_name)&market=from_token')
     return resp['name'].strip(), resp['owner']['display_name'].strip()
 
 
@@ -70,9 +70,7 @@ def download_from_user_playlist():
     selection = ''
     print('\n> SELECT A PLAYLIST BY ID')
     print('> SELECT A RANGE BY ADDING A DASH BETWEEN BOTH ID\'s')
-    print('> OR PARTICULAR OPTIONS BY ADDING A COMMA BETWEEN ID\'s')
-    print('> For example, typing 10 to get one playlist or 10-20 to get\nevery playlist from 10-20 (inclusive)\n')
-    print('> Or type 10,12,15,18 to get those playlists in particular')
+    print('> OR PARTICULAR OPTIONS BY ADDING A COMMA BETWEEN ID\'s\n')
     while len(selection) == 0:
         selection = str(input('ID(s): '))
     playlist_choices = map(int, split_input(selection))

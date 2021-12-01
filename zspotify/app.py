@@ -9,7 +9,7 @@ from playlist import get_playlist_songs, get_playlist_info, download_from_user_p
 from podcast import download_episode, get_show_episodes
 from termoutput import Printer, PrintChannel
 from track import download_track, get_saved_tracks
-from utils import fix_filename, splash, split_input, regex_input_for_urls
+from utils import splash, split_input, regex_input_for_urls
 from zspotify import ZSpotify
 
 SEARCH_URL = 'https://api.spotify.com/v1/search'
@@ -49,7 +49,7 @@ def client(args) -> None:
     if args.liked_songs:
         for song in get_saved_tracks():
             if not song[TRACK][NAME]:
-                Printer.print(PrintChannel.ERRORS, '###   SKIPPING:  SONG DOES NOT EXIST ON SPOTIFY ANYMORE   ###' + "\n")
+                Printer.print(PrintChannel.SKIPS, '###   SKIPPING:  SONG DOES NOT EXIST ON SPOTIFY ANYMORE   ###' + "\n")
             else:
                 download_track('liked', song[TRACK][ID])
 
@@ -85,8 +85,11 @@ def download_from_urls(urls: list[str]) -> bool:
             enum = 1
             char_num = len(str(len(playlist_songs)))
             for song in playlist_songs:
-                download_track('playlist', song[TRACK][ID], extra_keys={'playlist': name, 'playlist_num': str(enum).zfill(char_num)})
-                enum += 1
+                if not song[TRACK][NAME]:
+                    Printer.print(PrintChannel.SKIPS, '###   SKIPPING:  SONG DOES NOT EXIST ON SPOTIFY ANYMORE   ###' + "\n")
+                else:
+                    download_track('playlist', song[TRACK][ID], extra_keys={'playlist': name, 'playlist_num': str(enum).zfill(char_num)})
+                    enum += 1
         elif episode_id is not None:
             download = True
             download_episode(episode_id)
@@ -256,11 +259,9 @@ def search(search_term):
         print('NO RESULTS FOUND - EXITING...')
     else:
         selection = ''
-        print('\n> SELECT A DOWNLOAD OPTION BY ID')
+        print('> SELECT A DOWNLOAD OPTION BY ID')
         print('> SELECT A RANGE BY ADDING A DASH BETWEEN BOTH ID\'s')
-        print('> OR PARTICULAR OPTIONS BY ADDING A COMMA BETWEEN ID\'s')
-        print('> For example, typing 5 to get option 5 or 10-20 to get\nevery option from 10-20 (inclusive)\n')
-        print('> Or type 10,12,15,18 to get those options in particular')
+        print('> OR PARTICULAR OPTIONS BY ADDING A COMMA BETWEEN ID\'s\n')
         while len(selection) == 0:
             selection = str(input('ID(s): '))
         inputs = split_input(selection)

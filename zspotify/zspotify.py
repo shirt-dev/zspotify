@@ -6,18 +6,16 @@ It's like youtube-dl, but for Spotify.
 
 (Made by Deathmonger/Footsiefat - @doomslayer117:matrix.org)
 """
-import json
 import os
 import os.path
 from getpass import getpass
-from typing import Any
 
 import requests
 from librespot.audio.decoders import VorbisOnlyAudioQuality
 from librespot.core import Session
 
 from const import TYPE, \
-    PREMIUM, USER_READ_EMAIL, AUTHORIZATION, OFFSET, LIMIT, \
+    PREMIUM, USER_READ_EMAIL, OFFSET, LIMIT, \
     PLAYLIST_READ_PRIVATE, USER_LIBRARY_READ
 from config import Config
 
@@ -35,7 +33,7 @@ class ZSpotify:
     def login(cls):
         """ Authenticates with Spotify and saves credentials to a file """
 
-        cred_location = os.path.join(os.getcwd(), Config.get_credentials_location())
+        cred_location = Config.get_credentials_location()
 
         if os.path.isfile(cred_location):
             try:
@@ -49,7 +47,8 @@ class ZSpotify:
                 user_name = input('Username: ')
             password = getpass()
             try:
-                cls.SESSION = Session.Builder().user_pass(user_name, password).create()
+                conf = Session.Configuration.Builder().set_stored_credential_file(cred_location).build()
+                cls.SESSION = Session.Builder(conf).user_pass(user_name, password).create()
                 return
             except RuntimeError:
                 pass
@@ -85,7 +84,8 @@ class ZSpotify:
     @classmethod
     def invoke_url(cls, url):
         headers = cls.get_auth_header()
-        return requests.get(url, headers=headers).json()
+        response = requests.get(url, headers=headers)
+        return response.text, response.json()
 
     @classmethod
     def check_premium(cls) -> bool:
