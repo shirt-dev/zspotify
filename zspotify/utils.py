@@ -10,7 +10,7 @@ from typing import List, Tuple
 import music_tag
 import requests
 
-from const import ARTIST, TRACKTITLE, ALBUM, YEAR, DISCNUMBER, TRACKNUMBER, ARTWORK, \
+from const import ARTIST, GENRE, TRACKTITLE, ALBUM, YEAR, DISCNUMBER, TRACKNUMBER, ARTWORK, \
     WINDOWS_SYSTEM, ALBUMARTIST
 from zspotify import ZSpotify
 
@@ -124,11 +124,12 @@ def clear() -> None:
         os.system('clear')
 
 
-def set_audio_tags(filename, artists, name, album_name, release_year, disc_number, track_number) -> None:
+def set_audio_tags(filename, artists, genres, name, album_name, release_year, disc_number, track_number) -> None:
     """ sets music_tag metadata """
     tags = music_tag.load_file(filename)
     tags[ALBUMARTIST] = artists[0]
     tags[ARTIST] = conv_artist_format(artists)
+    tags[GENRE] = genres[0] if not ZSpotify.CONFIG.get_allGenres() else ZSpotify.CONFIG.get_allGenresDelimiter().join(genres)
     tags[TRACKTITLE] = name
     tags[ALBUM] = album_name
     tags[YEAR] = release_year
@@ -279,3 +280,84 @@ def fmt_seconds(secs: float) -> str:
         return f'{m}'.zfill(2) + ':' + f'{s}'.zfill(2)
     else:
         return f'{h}'.zfill(2) + ':' + f'{m}'.zfill(2) + ':' + f'{s}'.zfill(2)
+
+
+# load symbol from:
+# https://stackoverflow.com/questions/22029562/python-how-to-make-simple-animated-loading-while-process-is-running
+
+# imports
+from itertools import cycle
+from shutil import get_terminal_size
+from threading import Thread
+from time import sleep
+
+class Loader:
+    """Busy symbol.
+
+    Can be called inside a context:
+
+    with Loader("This take some Time..."):
+        # do something
+        pass          
+    """
+    def __init__(self, desc="Loading...", end='', timeout=0.1, mode='std1'):
+        """
+        A loader-like context manager
+
+        Args:
+            desc (str, optional): The loader's description. Defaults to "Loading...".
+            end (str, optional): Final print. Defaults to "".
+            timeout (float, optional): Sleep time between prints. Defaults to 0.1.
+        """
+        self.desc = desc
+        self.end = end
+        self.timeout = timeout
+
+        self._thread = Thread(target=self._animate, daemon=True)
+        if mode == 'std1':
+            self.steps = ["⢿", "⣻", "⣽", "⣾", "⣷", "⣯", "⣟", "⡿"]
+        elif mode == 'std2':
+            self.steps = ["◜","◝","◞","◟"]
+        elif mode == 'std3':
+            self.steps = ["😐 ","😐 ","😮 ","😮 ","😦 ","😦 ","😧 ","😧 ","🤯 ","💥 ","✨ ","\u3000 ","\u3000 ","\u3000 "]
+        elif mode == 'prog':
+            self.steps = ["[∙∙∙]","[●∙∙]","[∙●∙]","[∙∙●]","[∙∙∙]"]
+
+        self.done = False
+
+    def start(self):
+        self._thread.start()
+        return self
+
+    def _animate(self):
+        for c in cycle(self.steps):
+            if self.done:
+                break
+            print(f"\r\t{c} {self.desc} ", flush=True, end="")
+            sleep(self.timeout)
+
+    def __enter__(self):
+        self.start()
+
+    def stop(self):
+        self.done = True
+        cols = get_terminal_size((80, 20)).columns
+        print("\r" + " " * cols, end="", flush=True)
+
+        if self.end != "":
+            print(f"\r{self.end}", flush=True)
+
+    def __exit__(self, exc_type, exc_value, tb):
+        # handle exceptions with those variables ^
+        self.stop()
+
+
+if __name__ == "__main__":
+    with Loader("Loading with context manager..."):
+        for i in range(10):
+            sleep(0.25)
+
+    loader = Loader("Loading with object...", "That was fast!", 0.05).start()
+    for i in range(10):
+        sleep(0.25)
+    loader.stop()

@@ -25,7 +25,10 @@ PRINT_SKIPS = 'PRINT_SKIPS'
 PRINT_DOWNLOAD_PROGRESS = 'PRINT_DOWNLOAD_PROGRESS'
 PRINT_ERRORS = 'PRINT_ERRORS'
 PRINT_DOWNLOADS = 'PRINT_DOWNLOADS'
+PRINT_API_ERRORS = 'PRINT_API_ERRORS'
 TEMP_DOWNLOAD_DIR = 'TEMP_DOWNLOAD_DIR'
+MD_ALLGENRES = 'MD_ALLGENRES'
+MD_GENREDELIMITER = 'MD_GENREDELIMITER'
 
 CONFIG_VALUES = {
     ROOT_PATH:                  { 'default': '../ZSpotify Music/',    'type': str,  'arg': '--root-path'                  },
@@ -49,7 +52,10 @@ CONFIG_VALUES = {
     PRINT_DOWNLOAD_PROGRESS:    { 'default': 'True',                  'type': bool, 'arg': '--print-download-progress'    },
     PRINT_ERRORS:               { 'default': 'True',                  'type': bool, 'arg': '--print-errors'               },
     PRINT_DOWNLOADS:            { 'default': 'False',                 'type': bool, 'arg': '--print-downloads'            },
-    TEMP_DOWNLOAD_DIR:          { 'default': '',                      'type': str,  'arg': '--temp-download-dir'          },
+    PRINT_API_ERRORS:           { 'default': 'False',                 'type': bool, 'arg': '--print-api-errors'            },
+    MD_ALLGENRES:               { 'default': 'False',                 'type': bool, 'arg': '--md-allgenres'               },
+    MD_GENREDELIMITER:          { 'default': ';',                     'type': str,  'arg': '--md-genredelimiter'          },
+    TEMP_DOWNLOAD_DIR:          { 'default': '',                      'type': str,  'arg': '--temp-download-dir'          }
 }
 
 OUTPUT_DEFAULT_PLAYLIST = '{playlist}/{artist} - {song_name}.{ext}'
@@ -192,7 +198,15 @@ class Config:
         if cls.get(TEMP_DOWNLOAD_DIR) == '':
             return ''
         return os.path.join(cls.get_root_path(), cls.get(TEMP_DOWNLOAD_DIR))
+    
+    @classmethod
+    def get_allGenres(cls) -> bool:
+        return cls.get(MD_ALLGENRES)
 
+    @classmethod
+    def get_allGenresDelimiter(cls) -> bool:
+        return cls.get(MD_GENREDELIMITER)
+    
     @classmethod
     def get_output(cls, mode: str) -> str:
         v = cls.get(OUTPUT)

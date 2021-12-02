@@ -1,5 +1,6 @@
 import os
 import re
+from threading import Thread
 import time
 import uuid
 from typing import Any, Tuple, List
@@ -8,13 +9,15 @@ from librespot.audio.decoders import AudioQuality
 from librespot.metadata import TrackId
 from ffmpy import FFmpeg
 
-from const import TRACKS, ALBUM, NAME, ITEMS, DISC_NUMBER, TRACK_NUMBER, IS_PLAYABLE, ARTISTS, IMAGES, URL, \
+from const import TRACKS, ALBUM, GENRES, GENRE, NAME, ITEMS, DISC_NUMBER, TRACK_NUMBER, IS_PLAYABLE, ARTISTS, IMAGES, URL, \
     RELEASE_DATE, ID, TRACKS_URL, SAVED_TRACKS_URL, TRACK_STATS_URL, CODEC_MAP, EXT_MAP, DURATION_MS
 from termoutput import Printer, PrintChannel
 from utils import fix_filename, set_audio_tags, set_music_thumbnail, create_download_directory, \
     get_directory_song_ids, add_to_directory_song_ids, get_previously_downloaded, add_to_archive, fmt_seconds
 from zspotify import ZSpotify
 import traceback
+
+from utils import Loader
 
 def get_saved_tracks() -> list:
     """ Returns user's saved tracks """
@@ -33,17 +36,32 @@ def get_saved_tracks() -> list:
     return songs
 
 
-def get_song_info(song_id) -> Tuple[List[str], str, str, Any, Any, Any, Any, Any, Any, int]:
+def get_song_info(song_id) -> Tuple[List[str], List[str], str, str, Any, Any, Any, Any, Any, Any, int]:
     """ Retrieves metadata for downloaded songs """
-    (raw, info) = ZSpotify.invoke_url(f'{TRACKS_URL}?ids={song_id}&market=from_token')
+    with Loader("Fetching track information..."):
+        (raw, info) = ZSpotify.invoke_url(f'{TRACKS_URL}?ids={song_id}&market=from_token')
 
     if not TRACKS in info:
         raise ValueError(f'Invalid response from TRACKS_URL:\n{raw}')
 
     try:
         artists = []
+        genres = []
         for data in info[TRACKS][0][ARTISTS]:
             artists.append(data[NAME])
+            # query artist genres via href, which will be the api url
+            with Loader("Fetching artist information..."):            
+                (raw, artistInfo) = ZSpotify.invoke_url(f'{data["href"]}')
+            if ZSpotify.CONFIG.get_allGenres() and len(artistInfo[GENRES]) > 0:
+                for genre in artistInfo[GENRES]:
+                    genres.append(genre)
+            elif len(artistInfo[GENRES]) > 0:
+                genres.append(artistInfo[GENRES][0])
+         
+        if len(genres) == 0:
+            Printer.print(PrintChannel.SKIPS, '###    No Genre found.')
+            genres.append('')   
+                
         album_name = info[TRACKS][0][ALBUM][NAME]
         name = info[TRACKS][0][NAME]
         image_url = info[TRACKS][0][ALBUM][IMAGES][0][URL]
@@ -54,7 +72,7 @@ def get_song_info(song_id) -> Tuple[List[str], str, str, Any, Any, Any, Any, Any
         is_playable = info[TRACKS][0][IS_PLAYABLE]
         duration_ms = info[TRACKS][0][DURATION_MS]
 
-        return artists, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable, duration_ms
+        return artists, genres, album_name, name, image_url, release_year, disc_number, track_number, scraped_song_id, is_playable, duration_ms
     except Exception as e:
         raise ValueError(f'Failed to parse TRACKS_URL response: {str(e)}\n{raw}')
 
@@ -82,9 +100,12 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
     try:
         output_template = ZSpotify.CONFIG.get_output(mode)
 
-        (artists, album_name, name, image_url, release_year, disc_number,
+        (artists, genres, album_name, name, image_url, release_year, disc_number,
          track_number, scraped_song_id, is_playable, duration_ms) = get_song_info(track_id)
-
+        
+        prepareDownloadLoader = Loader("Preparing download...");
+        prepareDownloadLoader.start()
+        
         song_name = fix_filename(artists[0]) + ' - ' + fix_filename(name)
 
         for k in extra_keys:
@@ -131,12 +152,15 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
     else:
         try:
             if not is_playable:
+                prepareDownloadLoader.stop();
                 Printer.print(PrintChannel.SKIPS, '\n###   SKIPPING: ' + song_name + ' (SONG IS UNAVAILABLE)   ###' + "\n")
             else:
                 if check_id and check_name and ZSpotify.CONFIG.get_skip_existing_files():
+                    prepareDownloadLoader.stop();
                     Printer.print(PrintChannel.SKIPS, '\n###   SKIPPING: ' + song_name + ' (SONG ALREADY EXISTS)   ###' + "\n")
 
                 elif check_all_time and ZSpotify.CONFIG.get_skip_previously_downloaded():
+                    prepareDownloadLoader.stop();
                     Printer.print(PrintChannel.SKIPS, '\n###   SKIPPING: ' + song_name + ' (SONG ALREADY DOWNLOADED ONCE)   ###' + "\n")
 
                 else:
@@ -146,6 +170,8 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
                     stream = ZSpotify.get_content_stream(track_id, ZSpotify.DOWNLOAD_QUALITY)
                     create_download_directory(filedir)
                     total_size = stream.input_stream.size
+
+                    prepareDownloadLoader.stop();
 
                     time_start = time.time()
                     downloaded = 0
@@ -170,7 +196,7 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
                     time_downloaded = time.time()
 
                     convert_audio_format(filename_temp)
-                    set_audio_tags(filename_temp, artists, name, album_name, release_year, disc_number, track_number)
+                    set_audio_tags(filename_temp, artists, genres, name, album_name, release_year, disc_number, track_number)
                     set_music_thumbnail(filename_temp, image_url)
 
                     if filename_temp != filename:
@@ -196,8 +222,8 @@ def download_track(mode: str, track_id: str, extra_keys={}, disable_progressbar=
             Printer.print(PrintChannel.ERRORS, "".join(traceback.TracebackException.from_exception(e).format()) + "\n")
             if os.path.exists(filename_temp):
                 os.remove(filename_temp)
-
-
+                
+    prepareDownloadLoader.stop()
 def convert_audio_format(filename) -> None:
     """ Converts raw audio into playable file """
     temp_filename = f'{os.path.splitext(filename)[0]}.tmp'
@@ -224,6 +250,9 @@ def convert_audio_format(filename) -> None:
         inputs={temp_filename: None},
         outputs={filename: output_params}
     )
-    ff_m.run()
+    
+    with Loader("Converting file..."):
+        ff_m.run()
+        
     if os.path.exists(temp_filename):
         os.remove(temp_filename)

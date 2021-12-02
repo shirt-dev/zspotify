@@ -9,7 +9,7 @@ It's like youtube-dl, but for Spotify.
 import os
 import os.path
 from getpass import getpass
-
+import time
 import requests
 from librespot.audio.decoders import VorbisOnlyAudioQuality
 from librespot.core import Session
@@ -19,8 +19,7 @@ from const import TYPE, \
     PLAYLIST_READ_PRIVATE, USER_LIBRARY_READ
 from config import Config
 
-
-class ZSpotify:
+class ZSpotify:    
     SESSION: Session = None
     DOWNLOAD_QUALITY = None
     CONFIG: Config = Config()
@@ -82,10 +81,21 @@ class ZSpotify:
         return requests.get(url, headers=headers, params=params).json()
 
     @classmethod
-    def invoke_url(cls, url):
+    def invoke_url(cls, url, tryCount = 0):
+        # we need to import that here, otherwise we will get circular imports!
+        from termoutput import Printer, PrintChannel                
         headers = cls.get_auth_header()
         response = requests.get(url, headers=headers)
-        return response.text, response.json()
+        responseText = response.text
+        responseJson = response.json()
+        
+        if 'error' in responseJson and tryCount < 5:
+            
+            Printer.Print(PrintChannel.API_ERROR, f"Spotify API Error ({responseJson['error']['status']}): {responseJson['error']['message']}")            
+            time.sleep(5)
+            return cls.invoke_url(url, tryCount + 1)
+                
+        return responseText, responseJson
 
     @classmethod
     def check_premium(cls) -> bool:
