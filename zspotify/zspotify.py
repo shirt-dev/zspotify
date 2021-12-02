@@ -89,7 +89,7 @@ class ZSpotify:
         responseText = response.text
         responseJson = response.json()
         
-        if 'error' in responseJson and tryCount < 20:
+        if 'error' in responseJson and tryCount < 5:
             
             Printer.Print(PrintChannel.API_ERROR, f"Spotify API Error ({responseJson['error']['status']}): {responseJson['error']['message']}")            
             time.sleep(5)
