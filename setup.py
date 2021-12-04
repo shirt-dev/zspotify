@@ -26,6 +26,7 @@ setup(
         "Programming Language :: Python :: 3.9",
     ],
     packages=['zspotify'],
-    install_requires=['ffmpy', 'music_tag', 'Pillow', 'protobuf', 'tabulate', 'tqdm', 'git+https://github.com/kokarare1212/librespot-python'],
+    install_requires=['ffmpy', 'music_tag', 'Pillow', 'protobuf', 'tabulate', 'tqdm',
+                      'librespot @ git+https://github.com/kokarare1212/librespot-python'],
     include_package_data=True,
 )
