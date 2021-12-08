@@ -27,6 +27,6 @@ setup(
     ],
     packages=['zspotify'],
     install_requires=['ffmpy', 'music_tag', 'Pillow', 'protobuf', 'tabulate', 'tqdm',
-                      'librespot @ git+https://github.com/kokarare1212/librespot-python'],
+                      'librespot @ https://github.com/kokarare1212/librespot-python/archive/refs/heads/rewrite.zip'],
     include_package_data=True,
 )
