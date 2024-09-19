@@ -4,6 +4,9 @@
 
 # ZSpotify
 
+#### Disclaimer
+ZSpotify is an independent project and is not affiliated with, endorsed by, or associated with Spotify in any way. "Spotify" is a registered trademark of Spotify AB. This tool simply allows users to download content from their own Spotify account.
+
 ### A Spotify downloader needing only a python interpreter and ffmpeg.
 
 <p align="center">
